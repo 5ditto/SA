@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852727949475",
+    "project_id": "ap-project-44043",
+    "storage_bucket": "ap-project-44043.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852727949475:android:c8684f57cd0f87d93b3716",
+        "android_client_info": {
+          "package_name": "com.example.mysensorapp2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmvQ48wezaaMW0adsaWDcXSTYC5a1CMT4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
