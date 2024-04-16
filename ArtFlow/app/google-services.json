@@ -1,21 +1,22 @@
 {
   "project_info": {
-    "project_number": "852727949475",
-    "project_id": "ap-project-44043",
-    "storage_bucket": "ap-project-44043.appspot.com"
+    "project_number": "163754976013",
+    "firebase_url": "https://artflow-17f2c-default-rtdb.firebaseio.com",
+    "project_id": "artflow-17f2c",
+    "storage_bucket": "artflow-17f2c.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:852727949475:android:c8684f57cd0f87d93b3716",
+        "mobilesdk_app_id": "1:163754976013:android:788475e0cc628b31380644",
         "android_client_info": {
-          "package_name": "com.example.mysensorapp2"
+          "package_name": "com.example.artflow"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCmvQ48wezaaMW0adsaWDcXSTYC5a1CMT4"
+          "current_key": "AIzaSyCRcHswIrjRBOLOfAjdmJ0n9Q_aycLTi7s"
         }
       ],
       "services": {
