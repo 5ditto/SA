@@ -31,20 +31,5 @@ class CanvasView : View {
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val centerX = width / 2f
-        val centerY = height / 2f
-
-        // Desenhar a roda
-        val wheelRadius = (width.coerceAtMost(height) / 2 * 0.8).toFloat()
-        val wheelPaint = Paint().apply {
-            color = Color.RED
-            style = Paint.Style.FILL
-        }
-        canvas.drawCircle(centerX, centerY, wheelRadius, wheelPaint)
-
-        // Desenhar o texto
-        val text = "AP PROJECT"
-        canvas.drawText(text, centerX, centerY, textPaint)
     }
 }

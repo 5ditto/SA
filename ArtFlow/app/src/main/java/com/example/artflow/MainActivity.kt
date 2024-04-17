@@ -1,30 +1,28 @@
 package com.example.artflow
 
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var sensorDataCollector: SensorDataCollector
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        supportActionBar?.hide()  // É para esconder a barra de cima
+        window.statusBarColor = Color.parseColor("#EA4800") // É para tudo fica com a cor de fundo
 
-        sensorDataCollector = SensorDataCollector(sensorManager)
+        Handler(Looper.getMainLooper()).postDelayed({
+            val intent = Intent(this,Home::class.java)
+            startActivity(intent)
+            finish()
+        },3000) // 3000 milisegundos = 3 segundos que corresponde ao tempo que a splash screen aparece
     }
-
-    override fun onStart() {
-        super.onStart()
-        sensorDataCollector.start()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        sensorDataCollector.stop()
-    }
-
 }
