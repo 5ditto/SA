@@ -6,16 +6,46 @@ import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.SeekBar
+import yuku.ambilwarna.AmbilWarnaDialog
+
 
 class Home : AppCompatActivity() {
+    private var initialColor = Color.BLACK
     private lateinit var sensorDataCollector: SensorDataCollector
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        val canvasView = findViewById<CanvasView>(R.id.canvasView)
+        val shareButton = findViewById<ImageView>(R.id.btn_share)
+        val deleteButton = findViewById<ImageView>(R.id.btn_delete)
+        val undoButton = findViewById<ImageView>(R.id.btn_undo)
+        val colorButton = findViewById<ImageView>(R.id.btn_color)
+        val widthButton = findViewById<ImageView>(R.id.btn_width)
+        shareButton.setOnClickListener {
+            canvasView.shareCanvasDrawing()
+        }
+        deleteButton.setOnClickListener {
+            canvasView.clearCanvas()
+        }
+        undoButton.setOnClickListener {
+            canvasView.undo()
+        }
+        colorButton.setOnClickListener {
+            openColorPicker(canvasView,colorButton)
+        }
+        widthButton.setOnClickListener {
+            changeWidth(widthButton,canvasView)
+        }
+
+
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         sensorDataCollector = SensorDataCollector(sensorManager,this)
+
+
     }
 
     override fun onStart() {
@@ -39,5 +69,41 @@ class Home : AppCompatActivity() {
             else -> Color.WHITE // Cor padrão
         }
         layout.setBackgroundColor(color)
+    }
+
+    fun openColorPicker(canvasView : CanvasView ,btn_color : ImageView){
+        val colorPicker = AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+            override fun onCancel(dialog: AmbilWarnaDialog?) {
+                // Nada a fazer se o usuário cancelar a seleção de cor
+            }
+
+            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
+                canvasView.setBrushColor(color)
+                btn_color.setBackgroundColor(color)
+            }
+        })
+        colorPicker.show()
+    }
+
+    fun changeWidth(button : ImageView, canvasView: CanvasView) {
+        val seekBar = findViewById<SeekBar>(R.id.seekBar)
+
+        // No listener do botão:
+        button.setOnClickListener {
+            seekBar.visibility = View.VISIBLE
+        }
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                canvasView.setStrokeWidth(progress.toFloat())
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                seekBar?.visibility = View.GONE // Torna a SeekBar invisível quando o ajuste é concluído
+            }
+        })
     }
 }
