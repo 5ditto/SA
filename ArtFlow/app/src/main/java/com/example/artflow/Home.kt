@@ -1,19 +1,27 @@
 package com.example.artflow
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.SeekBar
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import yuku.ambilwarna.AmbilWarnaDialog
 
+private val INITIAL_SIZE = 10f // Tamanho inicial da bolinha
+private val MAX_SIZE = 20f // Tamanho máximo do pincel
+private val MIN_SIZE = 1f // Tamanho mínimo do pincel
 
 class Home : AppCompatActivity() {
     private var initialColor = Color.BLACK
     private lateinit var sensorDataCollector: SensorDataCollector
+    private var isSeekBarVisible = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -79,30 +87,55 @@ class Home : AppCompatActivity() {
 
             override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
                 canvasView.setBrushColor(color)
-                btn_color.setBackgroundColor(color)
+                val roundedDrawable = GradientDrawable()
+                roundedDrawable.shape = GradientDrawable.OVAL
+                roundedDrawable.setColor(color)
+                btn_color.background = roundedDrawable
             }
         })
         colorPicker.show()
     }
 
+    @SuppressLint("WrongViewCast")
     fun changeWidth(button : ImageView, canvasView: CanvasView) {
         val seekBar = findViewById<SeekBar>(R.id.seekBar)
+        val brushSizeIndicator = findViewById<ImageView>(R.id.brushSizeIndicator)
 
         // No listener do botão:
         button.setOnClickListener {
-            seekBar.visibility = View.VISIBLE
+            if (isSeekBarVisible){
+                seekBar.visibility = View.GONE
+                isSeekBarVisible = false
+            } else {
+                seekBar.visibility = View.VISIBLE
+                isSeekBarVisible = true
+            }
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val newSize = (MIN_SIZE + progress * (MAX_SIZE - MIN_SIZE) / seekBar?.max!!).toFloat()
+
+                // Atualizar a escala da bolinha
+                brushSizeIndicator.scaleX = newSize / INITIAL_SIZE
+                brushSizeIndicator.scaleY = newSize / INITIAL_SIZE
+
                 canvasView.setStrokeWidth(progress.toFloat())
+                brushSizeIndicator.visibility = View.VISIBLE
+
+
+                val layoutParams = brushSizeIndicator.layoutParams as ConstraintLayout.LayoutParams
+                if (seekBar != null) {
+                    layoutParams.leftMargin = seekBar.left + seekBar.thumb.bounds.left - brushSizeIndicator.width / 2
+                }
+                brushSizeIndicator.layoutParams = layoutParams
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                seekBar?.visibility = View.GONE // Torna a SeekBar invisível quando o ajuste é concluído
+                brushSizeIndicator.visibility = View.GONE
             }
         })
     }
