@@ -11,6 +11,7 @@ import android.widget.SeekBar
 import yuku.ambilwarna.AmbilWarnaDialog
 
 
+
 class Home : AppCompatActivity() {
     private var initialColor = Color.BLACK
     private lateinit var sensorDataCollector: SensorDataCollector
@@ -66,6 +67,10 @@ class Home : AppCompatActivity() {
             "down" -> Color.YELLOW
             "left" -> Color.RED
             "right" -> Color.GREEN
+            "upright" -> Color.BLACK
+            "upleft" -> Color.CYAN // Escolha a cor desejada para a diagonal superior esquerda
+            "downright" -> Color.MAGENTA // Escolha a cor desejada para a diagonal inferior direita
+            "downleft" -> Color.GRAY // 
             else -> Color.WHITE // Cor padrão
         }
         layout.setBackgroundColor(color)
