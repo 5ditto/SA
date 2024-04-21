@@ -1,4 +1,4 @@
-package com.example.artflow
+package com.example.artflow.data
 
 object GyroscopeData {
     var valueX: Float = 0.0f

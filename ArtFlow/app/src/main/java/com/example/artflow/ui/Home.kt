@@ -1,17 +1,18 @@
-package com.example.artflow
+package com.example.artflow.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.hardware.SensorManager
+import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.SeekBar
-import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.example.artflow.R
+import com.example.artflow.utils.sensor.SensorDataCollector
 import yuku.ambilwarna.AmbilWarnaDialog
 
 private val INITIAL_SIZE = 10f // Tamanho inicial da bolinha
@@ -19,10 +20,12 @@ private val MAX_SIZE = 20f // Tamanho máximo do pincel
 private val MIN_SIZE = 1f // Tamanho mínimo do pincel
 
 
+
 class Home : AppCompatActivity() {
     private var initialColor = Color.BLACK
     private lateinit var sensorDataCollector: SensorDataCollector
     private var isSeekBarVisible = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -84,7 +87,7 @@ class Home : AppCompatActivity() {
         layout.setBackgroundColor(color)
     }
 
-    fun openColorPicker(canvasView : CanvasView ,btn_color : ImageView){
+    fun openColorPicker(canvasView : CanvasView, btn_color : ImageView){
         val colorPicker = AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
             override fun onCancel(dialog: AmbilWarnaDialog?) {
                 // Nada a fazer se o usuário cancelar a seleção de cor
@@ -106,7 +109,6 @@ class Home : AppCompatActivity() {
         val seekBar = findViewById<SeekBar>(R.id.seekBar)
         val brushSizeIndicator = findViewById<ImageView>(R.id.brushSizeIndicator)
 
-        // No listener do botão:
         button.setOnClickListener {
             if (isSeekBarVisible){
                 seekBar.visibility = View.GONE

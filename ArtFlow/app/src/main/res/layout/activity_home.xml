@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    tools:context=".Home">
+    tools:context=".ui.Home">
 
     <TextView
         android:id="@+id/textView"
@@ -22,7 +22,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <com.example.artflow.CanvasView
+    <com.example.artflow.ui.CanvasView
         android:id="@+id/canvasView"
         android:layout_width="0dp"
         android:layout_height="0dp"

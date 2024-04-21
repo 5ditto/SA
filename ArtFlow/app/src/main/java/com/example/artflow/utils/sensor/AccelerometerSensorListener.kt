@@ -1,10 +1,11 @@
-package com.example.artflow
+package com.example.artflow.utils.sensor
 
 import android.hardware.SensorManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.util.Log
+import com.example.artflow.data.AccelerometerData
 
 class AccelerometerSensorListener: SensorEventListener {
     companion object{
@@ -23,7 +24,8 @@ class AccelerometerSensorListener: SensorEventListener {
         AccelerometerData.valueZ = event.values[2]
         AccelerometerData.accuracy = event.accuracy
         //sensorManager.unregisterListener(this)
-        Log.d(TAG,
+        Log.d(
+            TAG,
             "[SENSOR] - X=${AccelerometerData.valueX}, Y=${AccelerometerData.valueY}, Z=${AccelerometerData.valueZ}")
     }
 

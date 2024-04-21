@@ -1,15 +1,13 @@
-package com.example.artflow
+package com.example.artflow.utils.sensor
 
-import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
-import com.google.firebase.Firebase
+import com.example.artflow.ui.Home
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.database
 import kotlin.math.*
 
 class MadgwickFilter(beta: Double = 0.1) {

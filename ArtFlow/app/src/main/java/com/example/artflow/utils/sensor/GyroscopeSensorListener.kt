@@ -1,10 +1,11 @@
-package com.example.artflow
+package com.example.artflow.utils.sensor
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
+import com.example.artflow.data.GyroscopeData
 
 class GyroscopeSensorListener: SensorEventListener {
     companion object {
@@ -22,7 +23,8 @@ class GyroscopeSensorListener: SensorEventListener {
         GyroscopeData.valueY = event.values[1]
         GyroscopeData.valueZ = event.values[2]
         GyroscopeData.accuracy = event.accuracy
-        Log.d(TAG,
+        Log.d(
+            TAG,
             "[SENSOR] - X=${GyroscopeData.valueX}, Y=${GyroscopeData.valueY}, Z=${GyroscopeData.valueZ}")
     }
 

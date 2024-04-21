@@ -1,6 +1,5 @@
-package com.example.artflow
+package com.example.artflow.ui
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -13,12 +12,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import android.graphics.Color
-import android.view.*
-import android.widget.ImageView
-import android.widget.RelativeLayout
-import android.widget.SeekBar
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.GestureDetectorCompat
 
 class CanvasView : View {
     private val paint = Paint()
