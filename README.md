@@ -1,7 +1,7 @@
 # SA
 
 ## ArtFlow
-
+Aplicação que permite fazer desenhos utilizando dados recolhidos pelos sensores do telemóvel.
 
 ### Autores:
 
