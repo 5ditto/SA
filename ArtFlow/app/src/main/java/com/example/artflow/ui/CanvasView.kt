@@ -12,10 +12,15 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import android.graphics.Color
+import android.os.Build
+import android.view.MotionEvent
+import androidx.annotation.RequiresApi
+import java.nio.file.Files.lines
 
 class CanvasView : View {
     private val paint = Paint()
     private val path = Path()
+    private val lines = mutableListOf<Path>()
     private var brushColor: Int = Color.BLACK
 
     constructor(context: Context) : super(context) {
@@ -48,26 +53,50 @@ class CanvasView : View {
         invalidate()
     }
 
-    // Desenhar
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
-        canvas.drawPath(path,paint)
+        canvas.drawPath(path, paint)
     }
 
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val x = event.x
+        val y = event.y
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                path.moveTo(x, y)
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                path.lineTo(x, y)
+            }
+            MotionEvent.ACTION_UP -> {
+                // nothing to do here
+            }
+        }
+
+        // Schedules a repaint.
+        invalidate()
+        return true
+    }
 
     // Clear
     fun clearCanvas(){
         path.reset()
+        lines.clear()
         invalidate()
     }
 
     // Undo
+    @RequiresApi(Build.VERSION_CODES.O)
     fun undo(){
-        if(!path.isEmpty){
-            path.reset()
-            invalidate()
+        if (lines.size >0)
+        {
+            lines.removeAt(lines.size - 1);
+            invalidate();
         }
+        //toast the user
     }
 
     // Share
@@ -98,6 +127,8 @@ class CanvasView : View {
         }
         return file
     }
+
+
 
 
 }

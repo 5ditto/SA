@@ -5,85 +5,17 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
+import com.example.artflow.ui.CanvasView
 import com.example.artflow.ui.Home
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import kotlin.math.*
 
-class MadgwickFilter(beta: Double = 0.1) {
-    private var beta: Double = beta
-    private var q0: Double = 1.0
-    private var q1: Double = 0.0
-    private var q2: Double = 0.0
-    private var q3: Double = 0.0
 
-    fun updateIMU(gx: Double, gy: Double, gz: Double, ax: Double, ay: Double, az: Double, dt: Double) {
-        val qDot1 = 0.5 * (-q1 * gx - q2 * gy - q3 * gz)
-        val qDot2 = 0.5 * (q0 * gx + q2 * gz - q3 * gy)
-        val qDot3 = 0.5 * (q0 * gy - q1 * gz + q3 * gx)
-        val qDot4 = 0.5 * (q0 * gz + q1 * gy - q2 * gx)
-
-        val norm = sqrt(ax * ax + ay * ay + az * az)
-        if (norm > 0.0) {
-            val invNorm = 1.0 / norm
-            val axn = ax * invNorm
-            val ayn = ay * invNorm
-            val azn = az * invNorm
-
-            val _2q0 = 2 * q0
-            val _2q1 = 2 * q1
-            val _2q2 = 2 * q2
-            val _2q3 = 2 * q3
-            val _4q0 = 4 * q0
-            val _4q1 = 4 * q1
-            val _4q2 = 4 * q2
-            val _8q1 = 8 * q1
-            val _8q2 = 8 * q2
-            val q0q0 = q0 * q0
-            val q1q1 = q1 * q1
-            val q2q2 = q2 * q2
-            val q3q3 = q3 * q3
-
-            val s0 = _4q0 * q2q2 + _2q2 * axn + _4q0 * q1q1 - _2q1 * ayn
-            val s1 = _4q1 * q3q3 - _2q3 * axn + 4 * q0q0 * q1 - _2q0 * ayn - _4q1 + _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * azn
-            val s2 = 4 * q0q0 * q2 + _2q0 * axn + _4q2 * q3q3 - _2q3 * ayn - _4q2 + _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * azn
-            val s3 = 4 * q1q1 * q3 - _2q1 * axn + 4 * q2q2 * q3 - _2q2 * ayn
-
-            val invs = 1.0 / sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3)
-            val halfdt = 0.5 * dt
-
-            // Compute rate of change of quaternion
-            val qDot1Imu = (s1 * q3 - s0 * q2) * invs
-            val qDot2Imu = (s2 * q0 + s3 * q1) * invs
-            val qDot3Imu = (s2 * q1 - s3 * q0) * invs
-            val qDot4Imu = (s0 * q0 + s1 * q1) * invs
-
-            // Integrate to yield quaternion
-            q0 -= halfdt * (qDot1Imu - beta * q0q0 * qDot1Imu)
-            q1 -= halfdt * (qDot2Imu - beta * q1q1 * qDot2Imu)
-            q2 -= halfdt * (qDot3Imu - beta * q2q2 * qDot3Imu)
-            q3 -= halfdt * (qDot4Imu - beta * q3q3 * qDot4Imu)
-
-            // Normalize quaternion
-            val normq = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3)
-            val invNormq = 1.0 / normq
-            q0 *= invNormq
-            q1 *= invNormq
-            q2 *= invNormq
-            q3 *= invNormq
-        }
-    }
-
-    fun getQuaternion(): Array<Double> {
-        return arrayOf(q0, q1, q2, q3)
-    }
-}
-
-class SensorDataCollector(private val sensorManager: SensorManager,private val home: Home) : SensorEventListener {
+class SensorDataCollector(private val sensorManager: SensorManager, private val home: Home, private val canvasView: CanvasView,) : SensorEventListener {
     private var accelerometer: Sensor? = null
     private var gyroscope: Sensor? = null
     private lateinit var databaseReference: DatabaseReference
-    //private var previousTimestamp: Long = 0
+    private var madgwickFilter: MadgwickFilter = MadgwickFilter()
 
 
     init {
@@ -116,25 +48,39 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
         // Inicialização do filtro de Madgwick (movido para fora do método para evitar recriação a cada evento)
         //val madgwickFilter = MadgwickFilter()
 
+
         val sensorData = hashMapOf(
             "sensor_type" to sensorType,
             "sensor_name" to sensorName,
             "sensor_values" to sensorValues
         )
 
-        databaseReference.push().setValue(sensorData)
-            .addOnSuccessListener {
-                Log.d("Message","Sensor data added successfully")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Message", "Error adding sensor data", e)
-            }
-
+        // databaseReference.push().setValue(sensorData)
+        //    .addOnSuccessListener {
+        //        Log.d("Message","Sensor data added successfully")
+        //    }
+        //    .addOnFailureListener { e ->
+        //        Log.e("Message", "Error adding sensor data", e)
+        //    }
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val xAcc = event.values[0]
-            val yAcc = event.values[1]
-            val zAcc = event.values[2]
+            val xAcc = event.values[0].toDouble()
+            val yAcc = event.values[1].toDouble()
+            val zAcc = event.values[2].toDouble()
 
+            /*
+            madgwickFilter.updateIMU(0.0, 0.0, 0.0, gx, gy, gz, 0.0)
+
+            // Obter a orientação do dispositivo do filtro de Madgwick
+            val quaternion = madgwickFilter.getQuaternion()
+            val roll = Math.atan2(2.0 * (quaternion[0] * quaternion[1] + quaternion[2] * quaternion[3]),
+                1.0 - 2.0 * (quaternion[1] * quaternion[1] + quaternion[2] * quaternion[2]))
+            val pitch = Math.asin(2.0 * (quaternion[0] * quaternion[2] - quaternion[3] * quaternion[1]))
+            val yaw = Math.atan2(2.0 * (quaternion[0] * quaternion[3] + quaternion[1] * quaternion[2]),
+                1.0 - 2.0 * (quaternion[2] * quaternion[2] + quaternion[3] * quaternion[3]))
+
+            //home.draw(pitch, roll, yaw)
+            // Use os valores de roll, pitch e yaw para detectar o movimento do dispositivo
+            */
             // Calcular a magnitude do vetor de aceleração
             val magnitude = Math.sqrt((xAcc * xAcc + yAcc * yAcc + zAcc * zAcc).toDouble())
 
@@ -177,6 +123,7 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
             else if (magnitude > limiarMagnitude && inclinationY < -limiarInclination && inclinationX < -limiarInclination) {
                 home.updateLayoutColor("downleft") // Atualiza a cor do layout para a diagonal inferior esquerda
             }
+
         }
 
     }
@@ -184,5 +131,26 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // Ignorar
     }
+
+    private fun detectDeviceMovement(roll: Double, pitch: Double, yaw: Double) {
+        val limiar = 15.0
+        if (roll > limiar) {
+            home.updateLayoutColor("right")
+        } else if (roll < -limiar) {
+            home.updateLayoutColor("left")
+        } else if (pitch > limiar) {
+            home.updateLayoutColor("up")
+        } else if (pitch < -limiar) {
+            home.updateLayoutColor("down")
+        } else {
+            // Não há movimento detectado
+        }
+    }
+
+    companion object {
+        private const val NS2S = 1.0f / 1000000000.0f
+    }
+
+    private var lastTimestamp: Long = 0
 
 }

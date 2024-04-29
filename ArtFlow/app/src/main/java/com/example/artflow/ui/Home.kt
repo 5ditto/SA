@@ -55,7 +55,7 @@ class Home : AppCompatActivity() {
 
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        sensorDataCollector = SensorDataCollector(sensorManager,this)
+        sensorDataCollector = SensorDataCollector(sensorManager,this,canvasView)
 
 
     }
@@ -69,6 +69,7 @@ class Home : AppCompatActivity() {
         super.onStop()
         sensorDataCollector.stop()
     }
+
 
     // Função para atualizar a cor do layout com base na inclinação detectada pelo SensorDataCollector
     fun updateLayoutColor(direction: String) {
@@ -103,6 +104,7 @@ class Home : AppCompatActivity() {
         })
         colorPicker.show()
     }
+
 
     @SuppressLint("WrongViewCast")
     fun changeWidth(button : ImageView, canvasView: CanvasView) {
