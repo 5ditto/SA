@@ -1,5 +1,6 @@
 package com.example.artflow.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -10,68 +11,83 @@ import android.view.View
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import android.graphics.Color
+import android.view.MotionEvent
+import java.io.IOException
 
-class CanvasView : View {
-    private val paint = Paint()
-    private val path = Path()
-    private var brushColor: Int = Color.BLACK
+class CanvasView(context: Context, attrs: AttributeSet?): View(context,attrs) {
+    private val paths  = ArrayList<Pair<Path, Paint>>()
+    private lateinit var currentPath: Path
+    private lateinit var currentPaint: Paint
+    private var isBitmapReady = false
 
-    constructor(context: Context) : super(context) {
-        init(null)
+    init{
+        setupPaint(Color.BLACK, 10f)
     }
 
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        init(attrs)
+    private fun setupPaint(color: Int, width : Float){
+        currentPaint = Paint()
+        currentPaint.isAntiAlias = true
+        currentPaint.color = color
+        currentPaint.style = Paint.Style.STROKE
+        currentPaint.strokeJoin = Paint.Join.ROUND
+        currentPaint.strokeWidth = width
     }
 
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init(attrs)
+    fun setColor(color: Int) {
+        currentPaint.color = color
     }
 
-    fun setStrokeWidth(i : Float){
-        this.paint.strokeWidth = i
+    fun setStrokeWidth(width: Float) {
+        currentPaint.strokeWidth = width
     }
 
-    private fun init(attrs: AttributeSet?) {
-        paint.isAntiAlias = true
-        paint.strokeWidth = 10f
-        paint.style = Paint.Style.STROKE
-        paint.color = brushColor // Define a cor do pincel
-    }
-
-
-    fun setBrushColor(color: Int){
-        brushColor = color
-        paint.color = color
-        invalidate()
-    }
-
-    // Desenhar
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
-        canvas.drawPath(path,paint)
+        paths.forEach { (path, paint) ->
+            canvas.drawPath(path, paint)
+        }
+        isBitmapReady = true
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val touchX = event.x
+        val touchY = event.y
+
+        when(event.action){
+            MotionEvent.ACTION_DOWN -> {
+                currentPath = Path()
+                currentPath.moveTo(touchX, touchY)
+                paths.add(Pair(currentPath, Paint(currentPaint)))
+            }
+            MotionEvent.ACTION_MOVE -> {
+                currentPath.lineTo(touchX, touchY)
+            }
+            MotionEvent.ACTION_UP -> {
+                // No caso de ACTION_UP, não precisamos fazer nada
+            }
+        }
+        invalidate()
+        return true
+    }
 
     // Clear
-    fun clearCanvas(){
-        path.reset()
+    fun clear() {
+        paths.clear()
         invalidate()
     }
 
     // Undo
-    fun undo(){
-        if(!path.isEmpty){
-            path.reset()
+    fun undo() {
+        if (paths.size > 0) {
+            paths.removeAt(paths.size - 1)
             invalidate()
         }
     }
 
     // Share
-    fun shareCanvasDrawing() {
+    fun shareDrawing() {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         draw(canvas)
@@ -98,6 +114,4 @@ class CanvasView : View {
         }
         return file
     }
-
-
 }

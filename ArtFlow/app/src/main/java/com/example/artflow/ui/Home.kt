@@ -3,8 +3,8 @@ package com.example.artflow.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.hardware.SensorManager
 import android.graphics.drawable.GradientDrawable
+import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -18,8 +18,6 @@ import yuku.ambilwarna.AmbilWarnaDialog
 private val INITIAL_SIZE = 10f // Tamanho inicial da bolinha
 private val MAX_SIZE = 20f // Tamanho máximo do pincel
 private val MIN_SIZE = 1f // Tamanho mínimo do pincel
-
-
 
 class Home : AppCompatActivity() {
     private var initialColor = Color.BLACK
@@ -36,28 +34,25 @@ class Home : AppCompatActivity() {
         val undoButton = findViewById<ImageView>(R.id.btn_undo)
         val colorButton = findViewById<ImageView>(R.id.btn_color)
         val widthButton = findViewById<ImageView>(R.id.btn_width)
+
         shareButton.setOnClickListener {
-            canvasView.shareCanvasDrawing()
+            canvasView.shareDrawing()
         }
         deleteButton.setOnClickListener {
-            canvasView.clearCanvas()
+            canvasView.clear()
         }
         undoButton.setOnClickListener {
             canvasView.undo()
         }
         colorButton.setOnClickListener {
-            openColorPicker(canvasView,colorButton)
+            openColorPicker(canvasView, colorButton)
         }
         widthButton.setOnClickListener {
-            changeWidth(widthButton,canvasView)
+            changeWidth(widthButton, canvasView)
         }
 
-
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        sensorDataCollector = SensorDataCollector(sensorManager,this)
-
-
+        sensorDataCollector = SensorDataCollector(sensorManager, this)
     }
 
     override fun onStart() {
@@ -81,36 +76,36 @@ class Home : AppCompatActivity() {
             "upright" -> Color.BLACK
             "upleft" -> Color.CYAN // Escolha a cor desejada para a diagonal superior esquerda
             "downright" -> Color.MAGENTA // Escolha a cor desejada para a diagonal inferior direita
-            "downleft" -> Color.GRAY // 
+            "downleft" -> Color.GRAY // Escolha a cor desejada para a diagonal inferior esquerda
             else -> Color.WHITE // Cor padrão
         }
         layout.setBackgroundColor(color)
     }
 
-    fun openColorPicker(canvasView : CanvasView, btn_color : ImageView){
-        val colorPicker = AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
-            override fun onCancel(dialog: AmbilWarnaDialog?) {
-                // Nada a fazer se o usuário cancelar a seleção de cor
-            }
+    fun openColorPicker(canvasView: CanvasView, btn_color: ImageView) {
+        val colorPicker =
+            AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+                override fun onCancel(dialog: AmbilWarnaDialog?) {
+                }
 
-            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
-                canvasView.setBrushColor(color)
-                val roundedDrawable = GradientDrawable()
-                roundedDrawable.shape = GradientDrawable.OVAL
-                roundedDrawable.setColor(color)
-                btn_color.background = roundedDrawable
-            }
-        })
+                override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
+                    canvasView.setColor(color)
+                    val roundedDrawable = GradientDrawable()
+                    roundedDrawable.shape = GradientDrawable.OVAL
+                    roundedDrawable.setColor(color)
+                    btn_color.background = roundedDrawable
+                }
+            })
         colorPicker.show()
     }
 
     @SuppressLint("WrongViewCast")
-    fun changeWidth(button : ImageView, canvasView: CanvasView) {
+    fun changeWidth(button: ImageView, canvasView: CanvasView) {
         val seekBar = findViewById<SeekBar>(R.id.seekBar)
         val brushSizeIndicator = findViewById<ImageView>(R.id.brushSizeIndicator)
 
         button.setOnClickListener {
-            if (isSeekBarVisible){
+            if (isSeekBarVisible) {
                 seekBar.visibility = View.GONE
                 isSeekBarVisible = false
             } else {
@@ -121,7 +116,8 @@ class Home : AppCompatActivity() {
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val newSize = (MIN_SIZE + progress * (MAX_SIZE - MIN_SIZE) / seekBar?.max!!).toFloat()
+                val newSize =
+                    (MIN_SIZE + progress * (MAX_SIZE - MIN_SIZE) / seekBar?.max!!).toFloat()
 
                 // Atualizar a escala da bolinha
                 brushSizeIndicator.scaleX = newSize / INITIAL_SIZE
@@ -133,7 +129,8 @@ class Home : AppCompatActivity() {
 
                 val layoutParams = brushSizeIndicator.layoutParams as ConstraintLayout.LayoutParams
                 if (seekBar != null) {
-                    layoutParams.leftMargin = seekBar.left + seekBar.thumb.bounds.left - brushSizeIndicator.width / 2
+                    layoutParams.leftMargin =
+                        seekBar.left + seekBar.thumb.bounds.left - brushSizeIndicator.width / 2
                 }
                 brushSizeIndicator.layoutParams = layoutParams
             }

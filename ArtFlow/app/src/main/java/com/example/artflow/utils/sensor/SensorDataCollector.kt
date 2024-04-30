@@ -122,13 +122,13 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
             "sensor_values" to sensorValues
         )
 
-        databaseReference.push().setValue(sensorData)
-            .addOnSuccessListener {
-                Log.d("Message","Sensor data added successfully")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Message", "Error adding sensor data", e)
-            }
+        //databaseReference.push().setValue(sensorData)
+            //.addOnSuccessListener {
+           //     Log.d("Message","Sensor data added successfully")
+           // }
+           // .addOnFailureListener { e ->
+           //     Log.e("Message", "Error adding sensor data", e)
+           // }
 
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
             val xAcc = event.values[0]
