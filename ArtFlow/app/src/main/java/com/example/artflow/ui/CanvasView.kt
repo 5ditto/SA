@@ -1,45 +1,58 @@
 package com.example.artflow.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
-import android.graphics.Paint
-import android.os.Environment
+import android.os.Build
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
-import android.graphics.Color
-import android.view.MotionEvent
 import java.io.IOException
 
-class CanvasView(context: Context, attrs: AttributeSet?): View(context,attrs) {
-    private val paths  = ArrayList<Pair<Path, Paint>>()
-    private lateinit var currentPath: Path
-    private lateinit var currentPaint: Paint
-    private var isBitmapReady = false
+class CanvasView : View {
+    private val paths = ArrayList<Pair<Path, Paint>>()
+    private var brushColor: Int = Color.BLACK
+    private var strokeWidth = 10f
 
-    init{
-        setupPaint(Color.BLACK, 10f)
+    constructor(context: Context) : super(context) {
+        init(null)
     }
 
-    private fun setupPaint(color: Int, width : Float){
-        currentPaint = Paint()
-        currentPaint.isAntiAlias = true
-        currentPaint.color = color
-        currentPaint.style = Paint.Style.STROKE
-        currentPaint.strokeJoin = Paint.Join.ROUND
-        currentPaint.strokeWidth = width
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+        init(attrs)
     }
 
-    fun setColor(color: Int) {
-        currentPaint.color = color
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        init(attrs)
     }
 
     fun setStrokeWidth(width: Float) {
-        currentPaint.strokeWidth = width
+        strokeWidth = width
+        paths.last().second.strokeWidth = width
+        invalidate()
+    }
+
+    private fun init(attrs: AttributeSet?) {
+        val paint = Paint()
+        paint.isAntiAlias = true
+        paint.strokeWidth = strokeWidth
+        paint.style = Paint.Style.STROKE
+        paint.color = brushColor
+        paths.add(Pair(Path(), paint))
+    }
+
+    fun setBrushColor(color: Int) {
+        brushColor = color
+        paths.last().second.color = color
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -47,47 +60,44 @@ class CanvasView(context: Context, attrs: AttributeSet?): View(context,attrs) {
         paths.forEach { (path, paint) ->
             canvas.drawPath(path, paint)
         }
-        isBitmapReady = true
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        val touchX = event.x
-        val touchY = event.y
+        val x = event.x
+        val y = event.y
 
-        when(event.action){
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                currentPath = Path()
-                currentPath.moveTo(touchX, touchY)
-                paths.add(Pair(currentPath, Paint(currentPaint)))
+                paths.last().first.moveTo(x, y)
+                return true
             }
             MotionEvent.ACTION_MOVE -> {
-                currentPath.lineTo(touchX, touchY)
+                paths.last().first.lineTo(x, y)
             }
             MotionEvent.ACTION_UP -> {
-                // No caso de ACTION_UP, não precisamos fazer nada
+                paths.add(Pair(Path(), Paint(paths.last().second)))
             }
         }
+
         invalidate()
         return true
     }
 
-    // Clear
-    fun clear() {
+    fun clearCanvas() {
         paths.clear()
+        init(null)
         invalidate()
     }
 
-    // Undo
+    @RequiresApi(Build.VERSION_CODES.O)
     fun undo() {
-        if (paths.size > 0) {
+        if (paths.size > 1) {
             paths.removeAt(paths.size - 1)
             invalidate()
         }
     }
 
-    // Share
-    fun shareDrawing() {
+    fun shareCanvasDrawing() {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         draw(canvas)
@@ -96,14 +106,20 @@ class CanvasView(context: Context, attrs: AttributeSet?): View(context,attrs) {
 
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"
-            val uri = FileProvider.getUriForFile(context,context.packageName+ ".provider",file)
-            putExtra(Intent.EXTRA_STREAM,uri)
+            val uri = FileProvider.getUriForFile(
+                context,
+                context.packageName + ".provider",
+                file
+            )
+            putExtra(Intent.EXTRA_STREAM, uri)
         }
 
         context.startActivity(Intent.createChooser(shareIntent, "Compartilhar via"))
     }
+
     private fun saveBitmapToFile(bitmap: Bitmap): File {
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "artflow_temp.jpg")
+        val file =
+            File(context.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "artflow_temp.jpg")
         try {
             val outputStream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
