@@ -15,7 +15,9 @@
         app:layout_constraintBottom_toTopOf="@+id/seekBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
 
     <SeekBar
         android:id="@+id/seekBar"
@@ -31,17 +33,19 @@
         app:layout_constraintTop_toBottomOf="@+id/canvasView" />
 
     <ImageView
-        android:id="@+id/btn_undo"
+        android:id="@+id/btn_share"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="176dp"
         android:background="@drawable/button_orange"
         android:gravity="center"
-        android:padding="15dp"
-        android:src="@drawable/undo"
+        android:padding="13dp"
+        android:paddingStart="7dp"
+        android:src="@drawable/share"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="RtlSymmetry" />
 
     <ImageView
         android:id="@+id/btn_delete"
@@ -57,19 +61,30 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
-        android:id="@+id/btn_share"
+        android:id="@+id/btn_undo"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="88dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/button_orange"
+        android:gravity="center"
+        android:padding="15dp"
+        android:src="@drawable/baseline_undo_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/btn_redo"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="176dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/button_orange"
         android:gravity="center"
-        android:padding="13dp"
-        android:paddingStart="7dp"
-        android:src="@drawable/share"
+        android:padding="15dp"
+        android:src="@drawable/baseline_redo_24"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="RtlSymmetry" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
         android:id="@+id/btn_color"

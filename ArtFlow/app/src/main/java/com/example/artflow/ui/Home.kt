@@ -21,32 +21,43 @@ private val MIN_SIZE = 1f // Tamanho mínimo do pincel
 
 class Home : AppCompatActivity() {
     private var initialColor = Color.BLACK
+    private lateinit var canvasView: CanvasView
     private lateinit var sensorDataCollector: SensorDataCollector
     private var isSeekBarVisible = false
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val canvasView = findViewById<CanvasView>(R.id.canvasView)
-        val shareButton = findViewById<ImageView>(R.id.btn_share)
-        val deleteButton = findViewById<ImageView>(R.id.btn_delete)
-        val undoButton = findViewById<ImageView>(R.id.btn_undo)
-        val colorButton = findViewById<ImageView>(R.id.btn_color)
-        val widthButton = findViewById<ImageView>(R.id.btn_width)
+        canvasView = findViewById<CanvasView>(R.id.canvasView)
 
+        val shareButton = findViewById<ImageView>(R.id.btn_share)
         shareButton.setOnClickListener {
             canvasView.shareDrawing()
         }
+
+        val deleteButton = findViewById<ImageView>(R.id.btn_delete)
         deleteButton.setOnClickListener {
             canvasView.clear()
         }
+
+        val undoButton = findViewById<ImageView>(R.id.btn_undo)
         undoButton.setOnClickListener {
             canvasView.undo()
         }
+
+        val redoButton = findViewById<ImageView>(R.id.btn_redo)
+        redoButton.setOnClickListener {
+            canvasView.redo()
+        }
+
+        val colorButton = findViewById<ImageView>(R.id.btn_color)
         colorButton.setOnClickListener {
             openColorPicker(canvasView, colorButton)
         }
+
+        val widthButton = findViewById<ImageView>(R.id.btn_width)
         widthButton.setOnClickListener {
             changeWidth(widthButton, canvasView)
         }
@@ -63,23 +74,6 @@ class Home : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         sensorDataCollector.stop()
-    }
-
-    // Função para atualizar a cor do layout com base na inclinação detectada pelo SensorDataCollector
-    fun updateLayoutColor(direction: String) {
-        val layout = findViewById<View>(R.id.homeid)
-        val color = when (direction) {
-            "up" -> Color.BLUE
-            "down" -> Color.YELLOW
-            "left" -> Color.RED
-            "right" -> Color.GREEN
-            "upright" -> Color.BLACK
-            "upleft" -> Color.CYAN // Escolha a cor desejada para a diagonal superior esquerda
-            "downright" -> Color.MAGENTA // Escolha a cor desejada para a diagonal inferior direita
-            "downleft" -> Color.GRAY // Escolha a cor desejada para a diagonal inferior esquerda
-            else -> Color.WHITE // Cor padrão
-        }
-        layout.setBackgroundColor(color)
     }
 
     fun openColorPicker(canvasView: CanvasView, btn_color: ImageView) {
@@ -107,6 +101,7 @@ class Home : AppCompatActivity() {
         button.setOnClickListener {
             if (isSeekBarVisible) {
                 seekBar.visibility = View.GONE
+                brushSizeIndicator.visibility = View.GONE
                 isSeekBarVisible = false
             } else {
                 seekBar.visibility = View.VISIBLE

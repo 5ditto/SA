@@ -144,7 +144,7 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
 
             val limiarMagnitude = 4 // Limiar menor para detectar movimentos
             val limiarInclination = Math.toRadians(15.0) // Limiar menor para a inclinação em radianos
-
+            /*
             // Detectar movimento para cima
             if (magnitude > limiarMagnitude && inclinationY > limiarInclination) {
                 home.updateLayoutColor("up") // Atualiza a cor do layout para cima
@@ -177,6 +177,7 @@ class SensorDataCollector(private val sensorManager: SensorManager,private val h
             else if (magnitude > limiarMagnitude && inclinationY < -limiarInclination && inclinationX < -limiarInclination) {
                 home.updateLayoutColor("downleft") // Atualiza a cor do layout para a diagonal inferior esquerda
             }
+            */
         }
 
     }
