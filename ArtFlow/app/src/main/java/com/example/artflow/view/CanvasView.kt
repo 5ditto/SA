@@ -1,4 +1,4 @@
-package com.example.artflow.ui
+package com.example.artflow.view
 
 import android.content.Context
 import android.content.Intent
@@ -9,14 +9,21 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import com.example.artflow.utils.SensorDataCollector
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.atan2
 import java.io.IOException
-
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
 class CanvasView : View {
     private val paths = ArrayList<Pair<Path, Paint>>()
     private var brushColor: Int = Color.BLACK
     private var strokeWidth = 10f
+    var lastX: Float = 0f
+    var lastY: Float = 0f
+    var isDrawingEnabled = false
 
     constructor(context: Context) : super(context) {
         init(null)
@@ -34,25 +41,8 @@ class CanvasView : View {
         init(attrs)
     }
 
-    fun setStrokeWidth(width: Float) {
-        strokeWidth = width
-        paths.last().second.strokeWidth = width
-        invalidate()
-    }
-
-    private fun init(attrs: AttributeSet?) {
-        val paint = Paint()
-        paint.isAntiAlias = true
-        paint.strokeWidth = strokeWidth
-        paint.style = Paint.Style.STROKE
-        paint.color = brushColor
-        paths.add(Pair(Path(), paint))
-    }
-
-    fun setBrushColor(color: Int) {
-        brushColor = color
-        paths.last().second.color = color
-        invalidate()
+    fun setSensorDataCollector(sensorDataCollector: SensorDataCollector) {
+        sensorDataCollector.setListener(this)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -62,6 +52,21 @@ class CanvasView : View {
         }
     }
 
+    fun setBrushColor(color: Int) {
+        brushColor = color
+        paths.last().second.color = color
+        invalidate()
+    }
+
+    fun setStrokeWidth(width: Float) {
+        strokeWidth = width
+        paths.last().second.strokeWidth = width
+        invalidate()
+    }
+
+
+
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
         val y = event.y
@@ -69,18 +74,27 @@ class CanvasView : View {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 paths.last().first.moveTo(x, y)
+                lastX = x
+                lastY = y
+                isDrawingEnabled = true
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                paths.last().first.lineTo(x, y)
             }
             MotionEvent.ACTION_UP -> {
                 paths.add(Pair(Path(), Paint(paths.last().second)))
+                isDrawingEnabled = false
             }
         }
 
         invalidate()
         return true
+    }
+
+    fun drawLineTo(startX: Float, startY: Float, endX: Float, endY: Float) {
+        val lastPath = paths.last().first
+        lastPath.moveTo(startX, startY)
+        lastPath.lineTo(endX, endY)
     }
 
     fun clearCanvas() {
@@ -129,5 +143,16 @@ class CanvasView : View {
             e.printStackTrace()
         }
         return file
+    }
+
+
+
+    private fun init(attrs: AttributeSet?) {
+        val paint = Paint()
+        paint.isAntiAlias = true
+        paint.strokeWidth = strokeWidth
+        paint.style = Paint.Style.STROKE
+        paint.color = brushColor
+        paths.add(Pair(Path(), paint))
     }
 }

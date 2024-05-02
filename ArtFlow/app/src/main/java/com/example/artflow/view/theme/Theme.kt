@@ -1,4 +1,4 @@
-package com.example.artflow.ui.theme
+package com.example.artflow.view.theme
 
 import android.app.Activity
 import android.os.Build

@@ -1,109 +1,121 @@
-package com.example.artflow.ui
+package com.example.artflow.view
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.hardware.SensorManager
 import android.graphics.drawable.GradientDrawable
-import androidx.appcompat.app.AppCompatActivity
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.SeekBar
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.ViewModelProvider
 import com.example.artflow.R
-import com.example.artflow.utils.sensor.SensorDataCollector
+import com.example.artflow.utils.SensorDataCollector
+import com.example.artflow.viewmodel.DrawingViewModel
 import yuku.ambilwarna.AmbilWarnaDialog
 
 private val INITIAL_SIZE = 10f // Tamanho inicial da bolinha
 private val MAX_SIZE = 20f // Tamanho máximo do pincel
 private val MIN_SIZE = 1f // Tamanho mínimo do pincel
-
-
-class Home : AppCompatActivity() {
-    private var initialColor = Color.BLACK
+private val INITIAL_X = 100f
+private val INITIAL_Y = 100f
+class Home : AppCompatActivity(){
     private lateinit var sensorDataCollector: SensorDataCollector
+    private lateinit var canvasView: CanvasView
+    private lateinit var drawingViewModel: DrawingViewModel
+    private var initialColor = Color.BLACK
     private var isSeekBarVisible = false
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val canvasView = findViewById<CanvasView>(R.id.canvasView)
+        canvasView = findViewById(R.id.canvasView)
+        sensorDataCollector = SensorDataCollector(
+            getSystemService(Context.SENSOR_SERVICE) as SensorManager,
+            canvasView,
+            INITIAL_X,
+            INITIAL_Y
+        )
+
         val shareButton = findViewById<ImageView>(R.id.btn_share)
         val deleteButton = findViewById<ImageView>(R.id.btn_delete)
         val undoButton = findViewById<ImageView>(R.id.btn_undo)
         val colorButton = findViewById<ImageView>(R.id.btn_color)
         val widthButton = findViewById<ImageView>(R.id.btn_width)
+
+        drawingViewModel = ViewModelProvider(this).get(DrawingViewModel::class.java)
+
         shareButton.setOnClickListener {
+            sensorDataCollector.stop()
             canvasView.shareCanvasDrawing()
+            sensorDataCollector.start()
         }
+
         deleteButton.setOnClickListener {
+            sensorDataCollector.stop()
             canvasView.clearCanvas()
+            sensorDataCollector.setLastX(INITIAL_X)
+            sensorDataCollector.setLastY(INITIAL_Y)
+            sensorDataCollector.start()
         }
+
         undoButton.setOnClickListener {
+            sensorDataCollector.stop()
             canvasView.undo()
+            sensorDataCollector.start()
         }
+
         colorButton.setOnClickListener {
-            openColorPicker(canvasView,colorButton)
+            sensorDataCollector.stop()
+            openColorPicker(canvasView, colorButton)
+            sensorDataCollector.start()
         }
+
         widthButton.setOnClickListener {
-            changeWidth(widthButton,canvasView)
+            sensorDataCollector.stop()
+            changeWidth(widthButton, canvasView)
+            sensorDataCollector.start()
         }
+            }
 
-
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        sensorDataCollector = SensorDataCollector(sensorManager,this)
-
-
-    }
-
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         sensorDataCollector.start()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         sensorDataCollector.stop()
     }
 
-
-    // Função para atualizar a cor do layout com base na inclinação detectada pelo SensorDataCollector
-    fun updateLayoutColor(direction: String) {
-        val layout = findViewById<View>(R.id.homeid)
-        val color = when (direction) {
-            "up" -> Color.BLUE
-            "down" -> Color.YELLOW
-            "left" -> Color.RED
-            "right" -> Color.GREEN
-            "upright" -> Color.BLACK
-            "upleft" -> Color.CYAN // Escolha a cor desejada para a diagonal superior esquerda
-            "downright" -> Color.MAGENTA // Escolha a cor desejada para a diagonal inferior direita
-            "downleft" -> Color.GRAY // 
-            else -> Color.WHITE // Cor padrão
-        }
-        layout.setBackgroundColor(color)
+    fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Ignorar
     }
 
-    fun openColorPicker(canvasView : CanvasView, btn_color : ImageView){
-        val colorPicker = AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
-            override fun onCancel(dialog: AmbilWarnaDialog?) {
-                // Nada a fazer se o usuário cancelar a seleção de cor
-            }
+    private fun openColorPicker(canvasView: CanvasView, btn_color: ImageView) {
+        val colorPicker =
+            AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+                override fun onCancel(dialog: AmbilWarnaDialog?) {
+                    // Nada a fazer se o usuário cancelar a seleção de cor
+                }
 
-            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
-                canvasView.setBrushColor(color)
-                val roundedDrawable = GradientDrawable()
-                roundedDrawable.shape = GradientDrawable.OVAL
-                roundedDrawable.setColor(color)
-                btn_color.background = roundedDrawable
-            }
-        })
+                override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
+                    canvasView.setBrushColor(color)
+                    val roundedDrawable = GradientDrawable()
+                    roundedDrawable.shape = GradientDrawable.OVAL
+                    roundedDrawable.setColor(color)
+                    btn_color.background = roundedDrawable
+                }
+            })
         colorPicker.show()
     }
-
 
     fun changeWidth(button : ImageView, canvasView: CanvasView) {
         val seekBar = findViewById<SeekBar>(R.id.seekBar)
@@ -146,5 +158,7 @@ class Home : AppCompatActivity() {
             }
         })
     }
+
+
 
 }

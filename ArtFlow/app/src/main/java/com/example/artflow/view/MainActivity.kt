@@ -1,4 +1,4 @@
-package com.example.artflow.ui
+package com.example.artflow.view
 
 import android.content.Intent
 import android.os.Bundle
