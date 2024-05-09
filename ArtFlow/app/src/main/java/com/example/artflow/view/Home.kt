@@ -7,29 +7,24 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
+import android.widget.Button
 import android.widget.ImageView
-import android.widget.SeekBar
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import com.example.artflow.R
 import com.example.artflow.utils.SensorDataCollector
 import com.example.artflow.viewmodel.DrawingViewModel
 import yuku.ambilwarna.AmbilWarnaDialog
 
-private val INITIAL_SIZE = 10f // Tamanho inicial da bolinha
-private val MAX_SIZE = 20f // Tamanho máximo do pincel
-private val MIN_SIZE = 1f // Tamanho mínimo do pincel
-private val INITIAL_X = 100f
-private val INITIAL_Y = 100f
+
 class Home : AppCompatActivity(){
     private lateinit var sensorDataCollector: SensorDataCollector
     private lateinit var canvasView: CanvasView
     private lateinit var drawingViewModel: DrawingViewModel
     private var initialColor = Color.BLACK
-    private var isSeekBarVisible = false
+    private var initial_x = 500f
+    private var initial_y = 500f
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,68 +32,78 @@ class Home : AppCompatActivity(){
         setContentView(R.layout.activity_home)
 
         canvasView = findViewById(R.id.canvasView)
+
         sensorDataCollector = SensorDataCollector(
             getSystemService(Context.SENSOR_SERVICE) as SensorManager,
             canvasView,
-            INITIAL_X,
-            INITIAL_Y
+            initial_x,
+            initial_y
         )
-
-        val shareButton = findViewById<ImageView>(R.id.btn_share)
-        val deleteButton = findViewById<ImageView>(R.id.btn_delete)
-        val undoButton = findViewById<ImageView>(R.id.btn_undo)
-        val colorButton = findViewById<ImageView>(R.id.btn_color)
-        val widthButton = findViewById<ImageView>(R.id.btn_width)
 
         drawingViewModel = ViewModelProvider(this).get(DrawingViewModel::class.java)
 
+        val shareButton = findViewById<ImageView>(R.id.btn_share)
         shareButton.setOnClickListener {
-            sensorDataCollector.stop()
-            canvasView.shareCanvasDrawing()
-            sensorDataCollector.start()
+            onPause()
+            canvasView.shareDrawing()
+            drawingViewModel.sendDrawingToDatabase(canvasView.getArrayList())
+            onResume()
         }
 
+
+        val deleteButton = findViewById<ImageView>(R.id.btn_delete)
         deleteButton.setOnClickListener {
-            sensorDataCollector.stop()
-            canvasView.clearCanvas()
-            sensorDataCollector.setLastX(INITIAL_X)
-            sensorDataCollector.setLastY(INITIAL_Y)
-            sensorDataCollector.start()
+            onPause()
+            canvasView.clear()
+            sensorDataCollector.setLastX(initial_x)
+            sensorDataCollector.setLastY(initial_y)
+            onResume()
         }
 
+        val undoButton = findViewById<ImageView>(R.id.btn_undo)
         undoButton.setOnClickListener {
-            sensorDataCollector.stop()
+            onPause()
             canvasView.undo()
-            sensorDataCollector.start()
+            onResume()
         }
 
+        val colorButton = findViewById<ImageView>(R.id.btn_color)
         colorButton.setOnClickListener {
-            sensorDataCollector.stop()
+            onPause()
             openColorPicker(canvasView, colorButton)
-            sensorDataCollector.start()
+            onResume()
         }
 
-        widthButton.setOnClickListener {
-            sensorDataCollector.stop()
-            changeWidth(widthButton, canvasView)
-            sensorDataCollector.start()
-        }
+
+        val drawButton = findViewById<Button>(R.id.button_draw)
+        drawButton.setOnClickListener{
+            fun onStartDrawing() {
+                canvasView.startDrawing()
             }
 
-    override fun onResume() {
-        super.onResume()
-        sensorDataCollector.start()
+            fun onStopDrawing() {
+                canvasView.stopDrawing()
+            }
+        })
     }
 
     override fun onPause() {
         super.onPause()
         sensorDataCollector.stop()
+        canvasView.stopDrawing()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        sensorDataCollector.start()
+        canvasView.startDrawing()
     }
 
     fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // Ignorar
     }
 
+    // Mudar a cor do traço
     private fun openColorPicker(canvasView: CanvasView, btn_color: ImageView) {
         val colorPicker =
             AmbilWarnaDialog(this, initialColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
@@ -116,49 +121,5 @@ class Home : AppCompatActivity(){
             })
         colorPicker.show()
     }
-
-    fun changeWidth(button : ImageView, canvasView: CanvasView) {
-        val seekBar = findViewById<SeekBar>(R.id.seekBar)
-        val brushSizeIndicator = findViewById<ImageView>(R.id.brushSizeIndicator)
-
-        button.setOnClickListener {
-            if (isSeekBarVisible){
-                seekBar.visibility = View.GONE
-                isSeekBarVisible = false
-            } else {
-                seekBar.visibility = View.VISIBLE
-                isSeekBarVisible = true
-            }
-        }
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val newSize = (MIN_SIZE + progress * (MAX_SIZE - MIN_SIZE) / seekBar?.max!!).toFloat()
-
-                // Atualizar a escala da bolinha
-                brushSizeIndicator.scaleX = newSize / INITIAL_SIZE
-                brushSizeIndicator.scaleY = newSize / INITIAL_SIZE
-
-                canvasView.setStrokeWidth(progress.toFloat())
-                brushSizeIndicator.visibility = View.VISIBLE
-
-
-                val layoutParams = brushSizeIndicator.layoutParams as ConstraintLayout.LayoutParams
-                if (seekBar != null) {
-                    layoutParams.leftMargin = seekBar.left + seekBar.thumb.bounds.left - brushSizeIndicator.width / 2
-                }
-                brushSizeIndicator.layoutParams = layoutParams
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                brushSizeIndicator.visibility = View.GONE
-            }
-        })
-    }
-
-
 
 }
