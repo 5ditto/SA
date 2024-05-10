@@ -58,7 +58,7 @@ class DrawingRepository {
 
 
     // Enviar para a Base de Dados
-    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>, bitmap: Bitmap) {
+    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>, bitmap: Bitmap, rating: Int) {
         val timestamp = System.currentTimeMillis()
         val drawingData = HashMap<String, Any>()
 
@@ -83,15 +83,14 @@ class DrawingRepository {
 
         val base64Bitmap = bitmapToBase64(bitmap)
 
-        drawingData["Draw File: "] = base64Bitmap
+        drawingData["Draw File"] = base64Bitmap
+        drawingData["rating"] = rating
 
-        val drawingReference = databaseReference.child("id: $timestamp")
-        drawingReference.child("paths").setValue(drawingData).addOnSuccessListener {
+        val drawingReference = databaseReference.child("id_$timestamp")
+        drawingReference.setValue(drawingData).addOnSuccessListener {
             Log.d(TAG, "Desenho enviado com sucesso para o Firebase.")
+        }.addOnFailureListener { e ->
+            Log.e(TAG, "Erro ao enviar desenho para o Firebase.", e)
         }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Erro ao enviar desenho para o Firebase.", e)
-            }
     }
-
 }

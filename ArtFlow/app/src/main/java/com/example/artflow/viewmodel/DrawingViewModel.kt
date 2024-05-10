@@ -10,8 +10,8 @@ class DrawingViewModel : ViewModel() {
 
     private val drawingRepository = DrawingRepository()
 
-    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>, bitmap: Bitmap) {
-        drawingRepository.sendDrawingToDatabase(draw,bitmap)
+    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>, bitmap: Bitmap, rating: Int) {
+        drawingRepository.sendDrawingToDatabase(draw,bitmap, rating)
     }
 }
 

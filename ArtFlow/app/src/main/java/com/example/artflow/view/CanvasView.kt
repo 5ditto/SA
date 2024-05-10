@@ -1,16 +1,20 @@
 package com.example.artflow.view
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.RatingBar
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import com.example.artflow.R
 import com.example.artflow.utils.SensorDataCollector
 import com.example.artflow.viewmodel.DrawingViewModel
 import java.io.File
@@ -19,7 +23,7 @@ import java.io.IOException
 
 class CanvasView : View {
     private val paths = ArrayList<Pair<Path, Paint>>()
-    private var brushColor: Int = Color.BLACK
+    private var brushColor: Int = Color.parseColor("#EA4800")
     private var strokeWidth = 10f
     private var lastX: Float = 0f
     private var lastY: Float = 0f
@@ -66,7 +70,7 @@ class CanvasView : View {
         paint.strokeWidth = strokeWidth
         paint.style = Paint.Style.STROKE
         paint.strokeCap = Paint.Cap.ROUND
-        paint.color = brushColor
+        paint.color = Color.parseColor("#EA4800")
         paths.add(Pair(Path(), paint))
         isDrawingEnabled = false
         lastPoints = ArrayList()
@@ -113,7 +117,7 @@ class CanvasView : View {
     @RequiresApi(Build.VERSION_CODES.O)
     fun undo() {
         if (paths.size > 1) {
-            paths.removeAt(paths.size - 1)
+            paths.removeLast()
             if (lastPoints.size > 1) {
                 val lastPoint = lastPoints.last()
                 lastX = lastPoint.first
@@ -132,13 +136,29 @@ class CanvasView : View {
 
     // Partilhar o desenho
     fun shareDrawing(drawingViewModel: DrawingViewModel) {
+        val ratingDialog = AlertDialog.Builder(context)
+            .setView(R.layout.rating_dialog)
+            .setTitle("Rate Your Drawing Experience")
+            .setPositiveButton("Share") { dialog, _ ->
+                val ratingBar = (dialog as AlertDialog).findViewById<RatingBar>(R.id.ratingBar)
+                val rating = ratingBar?.rating?.toInt() ?: 0
+                saveAndShareDrawing(drawingViewModel, rating)
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        ratingDialog.show()
+    }
+
+    private fun saveAndShareDrawing(drawingViewModel: DrawingViewModel, rating: Int) {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         draw(canvas)
 
         val file = saveBitmapToFile(bitmap)
 
-        drawingViewModel.sendDrawingToDatabase(paths,bitmap)
+        drawingViewModel.sendDrawingToDatabase(paths, bitmap, rating)
+
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"
             val uri = FileProvider.getUriForFile(
@@ -149,9 +169,8 @@ class CanvasView : View {
             putExtra(Intent.EXTRA_STREAM, uri)
         }
 
-        context.startActivity(Intent.createChooser(shareIntent, "Compartilhar via"))
+        context.startActivity(Intent.createChooser(shareIntent, "Share via"))
     }
-
     // Guardar Bitmap
     private fun saveBitmapToFile(bitmap: Bitmap): File {
         val file =
@@ -199,5 +218,12 @@ class CanvasView : View {
     }
     fun stopAddPoint(){
         this.isAddPoint = false
+    }
+
+    private fun isNightMode(): Boolean {
+        return when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_YES -> true
+            else -> false
+        }
     }
 }
