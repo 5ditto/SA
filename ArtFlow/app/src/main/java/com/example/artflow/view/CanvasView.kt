@@ -6,10 +6,12 @@ import android.content.Intent
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import com.example.artflow.utils.SensorDataCollector
 import com.example.artflow.viewmodel.DrawingViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -21,17 +23,16 @@ class CanvasView : View {
     private var strokeWidth = 10f
     private var lastX: Float = 0f
     private var lastY: Float = 0f
+    private lateinit var lastPoints : ArrayList<Pair<Float,Float>>
     private var isDrawingEnabled = false
-
+    private var isAddPoint = false
 
     constructor(context: Context) : super(context) {
         init(null)
     }
-
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init(attrs)
     }
-
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs,
@@ -39,7 +40,6 @@ class CanvasView : View {
     ) {
         init(attrs)
     }
-
 
     fun startDrawing(){
         this.isDrawingEnabled = true
@@ -49,6 +49,13 @@ class CanvasView : View {
         this.isDrawingEnabled = false
     }
 
+    fun getLastX(): Float {
+        return this.lastX
+    }
+
+    fun getLastY(): Float{
+        return this.lastY
+    }
     fun getDraw(): Boolean {
         return  this.isDrawingEnabled
     }
@@ -60,18 +67,8 @@ class CanvasView : View {
         paint.style = Paint.Style.STROKE
         paint.color = brushColor
         paths.add(Pair(Path(), paint))
-    }
-
-    fun setLastX(x: Float){
-        this.lastX = x
-    }
-
-    fun setLastY(y: Float) {
-        this.lastY = y
-    }
-
-    fun getArrayList(): ArrayList<Pair<Path, Paint>> {
-        return this.paths
+        lastPoints = ArrayList()
+        lastPoints.add(Pair(500f,500f))
     }
 
     // Desenhar (util para o caso de se carregar desenhos antigos - a implementar)
@@ -116,21 +113,31 @@ class CanvasView : View {
     fun undo() {
         if (paths.size > 1) {
             paths.removeAt(paths.size - 1)
+            if (lastPoints.size > 1) {
+                val lastPoint = lastPoints.last()
+                lastX = lastPoint.first
+                lastY = lastPoint.second
+                lastPoints.removeAt(lastPoints.size - 1)
+            }
             invalidate()
-        }
-        else{
+        } else {
             clear()
         }
     }
 
+
+
+
+
     // Partilhar o desenho
-    fun shareDrawing() {
+    fun shareDrawing(drawingViewModel: DrawingViewModel) {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         draw(canvas)
 
         val file = saveBitmapToFile(bitmap)
 
+        drawingViewModel.sendDrawingToDatabase(paths,bitmap)
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"
             val uri = FileProvider.getUriForFile(
@@ -159,8 +166,8 @@ class CanvasView : View {
         return file
     }
 
-    fun onStartDrawing(){
-        isDrawingEnabled = true
+    fun addNewPoint(x : Float, y :Float){
+        lastPoints.add(Pair(x,y))
     }
 
 
@@ -172,20 +179,16 @@ class CanvasView : View {
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                if (x >= 0 && x <= width && y >= 0 && y <= height) {
-                    paths.add(Pair(Path(), Paint(paths.last().second)))
-                    paths.last().first.moveTo(x, y)
-                    lastX = x
-                    lastY = y
-                    isDrawingEnabled = true
-                    return true
-                }
+                isDrawingEnabled = true
+                return true
             }
-            MotionEvent.ACTION_MOVE -> {
-            }
+
             MotionEvent.ACTION_UP -> {
-                paths.add(Pair(Path(), Paint(paths.last().second)))
-                isDrawingEnabled = false
+                if (isDrawingEnabled) {
+                    paths.add(Pair(Path(), Paint(paths.last().second)))
+                    isDrawingEnabled = false
+                    isAddPoint = true
+                }
             }
         }
 
@@ -193,4 +196,10 @@ class CanvasView : View {
         return true
     }
 
+    fun getIsAddPoint(): Boolean {
+        return this.isAddPoint
+    }
+    fun stopAddPoint(){
+        this.isAddPoint = false
+    }
 }

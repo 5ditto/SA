@@ -1,11 +1,15 @@
 package com.example.artflow.repository
 
 import android.content.ContentValues.TAG
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PathMeasure
+import android.util.Base64
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
+import java.io.ByteArrayOutputStream
 
 class DrawingRepository {
 
@@ -27,11 +31,34 @@ class DrawingRepository {
         return stringBuilder.toString()
     }
 
+    fun getColorNameFromHex(color: Int): String {
+        val colorName = when (color) {
+            Color.BLACK -> "Preto"
+            Color.DKGRAY -> "Cinza Escuro"
+            Color.GRAY -> "Cinza"
+            Color.LTGRAY -> "Cinza Claro"
+            Color.WHITE -> "Branco"
+            Color.RED -> "Vermelho"
+            Color.GREEN -> "Verde"
+            Color.BLUE -> "Azul"
+            Color.YELLOW -> "Amarelo"
+            Color.CYAN -> "Ciano"
+            Color.MAGENTA -> "Magenta"
+            else -> "#${Integer.toHexString(color).toUpperCase()}"
+        }
+        return colorName
+    }
 
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
 
 
     // Enviar para a Base de Dados
-    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>) {
+    fun sendDrawingToDatabase(draw: ArrayList<Pair<Path, Paint>>, bitmap: Bitmap) {
         val timestamp = System.currentTimeMillis()
         val drawingData = HashMap<String, Any>()
 
@@ -43,7 +70,7 @@ class DrawingRepository {
                 val pathData = pathToString(path)
                 val paintData = mapOf(
                     "strokeWidth" to paint.strokeWidth,
-                    "color" to paint.color
+                    "color" to getColorNameFromHex(paint.color)
                 )
 
                 val pathPaintData = HashMap<String, Any>()
@@ -53,6 +80,10 @@ class DrawingRepository {
                 drawingData["path $index"] = pathPaintData
             }
         }
+
+        val base64Bitmap = bitmapToBase64(bitmap)
+
+        drawingData["Draw File: "] = base64Bitmap
 
         val drawingReference = databaseReference.child("id: $timestamp")
         drawingReference.child("paths").setValue(drawingData).addOnSuccessListener {

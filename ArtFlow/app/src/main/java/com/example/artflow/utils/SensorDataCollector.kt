@@ -4,12 +4,13 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import kotlin.math.sqrt
 import com.example.artflow.view.CanvasView
 
 class SensorDataCollector(
     private val sensorManager: SensorManager,
-    private var motionView: CanvasView,
+    private var canvasView: CanvasView,
     private var lastX: Float,
     private var lastY: Float
 ) : SensorEventListener {
@@ -19,7 +20,7 @@ class SensorDataCollector(
     private var filter: ComplementaryFilter
     private var scaleFactor = 20.0f
     private var movementThreshold = 4.0f
-    private var maxStrokeWidth = 20.0f
+    private var maxStrokeWidth = 40.0f
     private var minStrokeWidth = 2.0f
 
     init {
@@ -50,7 +51,7 @@ class SensorDataCollector(
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (motionView.getDraw()) {
+        if (canvasView.getDraw()) {
             when (event.sensor.type) {
                 Sensor.TYPE_ACCELEROMETER -> {
                     val isGyroscopeData = false
@@ -61,7 +62,7 @@ class SensorDataCollector(
                     if (magnitude > movementThreshold) {
                         val newX = lastX - xAcc * scaleFactor
                         val newY = lastY - yAcc * scaleFactor
-                        motionView.drawLineTo(lastX, lastY, newX, newY)
+                        canvasView.drawLineTo(lastX, lastY, newX, newY)
                         lastX = newX
                         lastY = newY
                     }
@@ -72,15 +73,24 @@ class SensorDataCollector(
                     val zGyro = event.values[2]
                     val gyroMagnitude = sqrt((xGyro * xGyro + yGyro * yGyro + zGyro * zGyro).toDouble())
                     val strokeWidth = (maxStrokeWidth - (gyroMagnitude * scaleFactor)).toFloat()
-                    motionView.setStrokeWidth(
+                    canvasView.setStrokeWidth(
                         if (strokeWidth < minStrokeWidth) minStrokeWidth else strokeWidth
                     )
                 }
             }
         }
+        if (canvasView.getIsAddPoint()){
+            canvasView.addNewPoint(lastX,lastY)
+            canvasView.stopAddPoint()
+        }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // Ignorar
+    }
+
+    fun updateLastPoint(x: Float, y: Float) {
+        this.lastX = x
+        this.lastY = y
     }
 }
