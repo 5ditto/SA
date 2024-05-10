@@ -94,9 +94,14 @@ app.layout = html.Div([
 
     ]),
     html.Div([
+        html.Div([
             dcc.Graph(id='strokeWidth_distribution'),
-            dcc.Graph(id='update_datapoints_graph')
-        ]),
+        ], style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            dcc.Graph(id='update_datapoints_graph'),
+        ], style={'width': '48%', 'display': 'inline-block', 'margin-left': '2%'})
+    ]),
         
     html.Div([    
         html.H3(children='Draw:', style={'textAlign': 'center', 'margin-bottom': '50px'}),

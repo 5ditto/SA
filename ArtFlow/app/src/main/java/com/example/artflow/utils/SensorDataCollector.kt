@@ -65,7 +65,7 @@ class SensorDataCollector(
 
                     if (magnitude > movementThreshold) {
                         val newX = lastX + xAcc * scaleFactor
-                        val newY = lastY - yAcc * scaleFactor
+                        val newY = lastY + yAcc * scaleFactor
                         canvasView.drawLineTo(lastX, lastY, newX, newY)
                         lastX = newX
                         lastY = newY
