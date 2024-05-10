@@ -184,7 +184,7 @@ def update_color_counts(selected_drawing):
     selected_drawing_data = df[df['DrawingID'] == selected_drawing].copy()  
     unique_colors = selected_drawing_data['Color'].nunique()
     return html.Div([
-        html.H4('Número de cores:', style={'margin-bottom': '5px'}),
+        html.H4('Number of colors:', style={'margin-bottom': '5px'}),
         html.H1(f'{unique_colors}', style={'color': '#007bff', 'margin': '0'})
     ])
 
