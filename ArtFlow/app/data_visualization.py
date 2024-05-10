@@ -202,7 +202,7 @@ def update_strokeWisdth_distribution(selected_drawing):
                                               y=width_counts.values,
                                               marker_color='#007bff'))
     fig_width_distribution.update_layout(title='Stroke Width Distribution',
-                                             xaxis_title='Thickness',
+                                             xaxis_title='Width',
                                              yaxis_title='Number of Drawings',
                                              margin=dict(l=20, r=20, t=50, b=20),
                                              plot_bgcolor='#f8f9fa',
