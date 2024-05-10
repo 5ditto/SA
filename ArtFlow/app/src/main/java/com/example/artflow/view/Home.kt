@@ -30,6 +30,7 @@ class Home : AppCompatActivity(){
         setContentView(R.layout.activity_home)
 
         canvasView = findViewById(R.id.canvasView)
+        canvasView.stopDrawing()
 
         sensorDataCollector = SensorDataCollector(
             getSystemService(Context.SENSOR_SERVICE) as SensorManager,
@@ -55,6 +56,7 @@ class Home : AppCompatActivity(){
             sensorDataCollector.setLastX(initialX)
             sensorDataCollector.setLastY(initialY)
             onResume()
+            canvasView.stopDrawing()
         }
 
         val undoButton = findViewById<ImageView>(R.id.btn_undo)
@@ -77,13 +79,11 @@ class Home : AppCompatActivity(){
     override fun onPause() {
         super.onPause()
         sensorDataCollector.stop()
-        canvasView.stopDrawing()
     }
 
     override fun onResume() {
         super.onResume()
         sensorDataCollector.start()
-        canvasView.startDrawing()
     }
 
 

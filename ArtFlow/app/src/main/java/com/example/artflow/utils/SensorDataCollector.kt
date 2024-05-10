@@ -4,9 +4,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
-import kotlin.math.sqrt
 import com.example.artflow.view.CanvasView
+import kotlin.math.sqrt
 
 class SensorDataCollector(
     private val sensorManager: SensorManager,
@@ -17,9 +16,11 @@ class SensorDataCollector(
 
     private var accelerometer: Sensor? = null
     private var gyroscope: Sensor? = null
-    private var filter: ComplementaryFilter
-    private var scaleFactor = 20.0f
-    private var movementThreshold = 4.0f
+    private var accData = FloatArray(3)
+    private var gyroData = FloatArray(3)
+    private var filter : ComplementaryFilter
+    private var scaleFactor = 10.0f
+    private var movementThreshold = 0.10f
     private var maxStrokeWidth = 40.0f
     private var minStrokeWidth = 2.0f
 
@@ -44,6 +45,7 @@ class SensorDataCollector(
         gyroscope?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
     }
 
     fun stop() {
@@ -54,13 +56,15 @@ class SensorDataCollector(
         if (canvasView.getDraw()) {
             when (event.sensor.type) {
                 Sensor.TYPE_ACCELEROMETER -> {
-                    val isGyroscopeData = false
-                    val filteredData = filter.applyFilter(event.values, isGyroscopeData)
-                    val xAcc = filteredData[0]
+                    accData = event.values.clone()
+                    val filteredData = filter.applyFilter(accData, false)
+
+                    val xAcc = -filteredData[0] // Invertido para corresponder à orientação do dispositivo
                     val yAcc = filteredData[1]
-                    val magnitude = sqrt((xAcc * xAcc + yAcc * yAcc).toDouble())
+                    val magnitude = sqrt((xAcc * xAcc + yAcc * yAcc).toDouble()).toFloat()
+
                     if (magnitude > movementThreshold) {
-                        val newX = lastX - xAcc * scaleFactor
+                        val newX = lastX + xAcc * scaleFactor
                         val newY = lastY - yAcc * scaleFactor
                         canvasView.drawLineTo(lastX, lastY, newX, newY)
                         lastX = newX
@@ -68,22 +72,26 @@ class SensorDataCollector(
                     }
                 }
                 Sensor.TYPE_GYROSCOPE -> {
-                    val xGyro = event.values[0]
-                    val yGyro = event.values[1]
-                    val zGyro = event.values[2]
-                    val gyroMagnitude = sqrt((xGyro * xGyro + yGyro * yGyro + zGyro * zGyro).toDouble())
-                    val strokeWidth = (maxStrokeWidth - (gyroMagnitude * scaleFactor)).toFloat()
+                    gyroData = event.values.clone()
+                    val filteredGyroData = filter.applyFilter(gyroData, true)
+
+                    val xGyro = filteredGyroData[0]
+                    val yGyro = filteredGyroData[1]
+                    val zGyro = filteredGyroData[2]
+                    val gyroMagnitude = sqrt((xGyro * xGyro + yGyro * yGyro + zGyro * zGyro).toDouble()).toFloat()
+                    val strokeWidth = (maxStrokeWidth - (gyroMagnitude * scaleFactor))
                     canvasView.setStrokeWidth(
                         if (strokeWidth < minStrokeWidth) minStrokeWidth else strokeWidth
                     )
                 }
             }
         }
-        if (canvasView.getIsAddPoint()){
-            canvasView.addNewPoint(lastX,lastY)
+        if (canvasView.getIsAddPoint()) {
+            canvasView.addNewPoint(lastX, lastY)
             canvasView.stopAddPoint()
         }
     }
+
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // Ignorar

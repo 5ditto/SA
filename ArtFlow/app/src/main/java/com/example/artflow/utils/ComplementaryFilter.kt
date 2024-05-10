@@ -1,5 +1,8 @@
 package com.example.artflow.utils
 
+import android.hardware.SensorManager
+import kotlin.math.*
+
 class ComplementaryFilter() {
     private val alpha = 0.8f
     private val gravity = FloatArray(3)
@@ -14,11 +17,6 @@ class ComplementaryFilter() {
             linearAcceleration[0] = sensorData[0] - gravity[0]
             linearAcceleration[1] = sensorData[1] - gravity[1]
             linearAcceleration[2] = sensorData[2] - gravity[2]
-        } else {
-            // Se os dados são do giroscópio, aplicamos o filtro diretamente
-            linearAcceleration[0] = sensorData[0]
-            linearAcceleration[1] = sensorData[1]
-            linearAcceleration[2] = sensorData[2]
         }
         return linearAcceleration
     }

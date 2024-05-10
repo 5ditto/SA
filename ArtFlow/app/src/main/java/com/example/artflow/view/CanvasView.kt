@@ -65,8 +65,10 @@ class CanvasView : View {
         paint.isAntiAlias = true
         paint.strokeWidth = strokeWidth
         paint.style = Paint.Style.STROKE
+        paint.strokeCap = Paint.Cap.ROUND
         paint.color = brushColor
         paths.add(Pair(Path(), paint))
+        isDrawingEnabled = false
         lastPoints = ArrayList()
         lastPoints.add(Pair(500f,500f))
     }
@@ -104,7 +106,6 @@ class CanvasView : View {
     fun clear() {
         paths.clear()
         init(null)
-        isDrawingEnabled = false
         invalidate()
     }
 
@@ -174,19 +175,16 @@ class CanvasView : View {
     // Ao tocar no ecrã desenha
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        val x = event.x
-        val y = event.y
-
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                isDrawingEnabled = true
+                startDrawing()
                 return true
             }
 
             MotionEvent.ACTION_UP -> {
                 if (isDrawingEnabled) {
                     paths.add(Pair(Path(), Paint(paths.last().second)))
-                    isDrawingEnabled = false
+                    stopDrawing()
                     isAddPoint = true
                 }
             }
