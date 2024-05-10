@@ -106,7 +106,7 @@ app.layout = html.Div([
     html.Div([    
         html.H3(children='Draw:', style={'textAlign': 'center', 'margin-bottom': '50px'}),
             html.Div([
-            html.Img(id='image-display', style={'width': '50%', 'border': '2px solid black', 'margin': 'auto'})
+            html.Img(id='image-display', style={'width': '20%','height': '20%', 'border': '2px solid black', 'margin': 'auto'})
         ], style={'text-align': 'center', 'margin-top': '20px'}),
     ]),
 

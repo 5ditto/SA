@@ -8,14 +8,12 @@ import android.content.res.Configuration
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.RatingBar
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.example.artflow.R
-import com.example.artflow.utils.SensorDataCollector
 import com.example.artflow.viewmodel.DrawingViewModel
 import java.io.File
 import java.io.FileOutputStream

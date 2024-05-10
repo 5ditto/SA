@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import com.example.artflow.R
-import com.example.artflow.repository.DrawingRepository
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

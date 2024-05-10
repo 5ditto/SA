@@ -11,7 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.artflow.R
-import com.example.artflow.utils.SensorDataCollector
+import com.example.artflow.model.SensorDataCollector
 import com.example.artflow.viewmodel.DrawingViewModel
 import yuku.ambilwarna.AmbilWarnaDialog
 
@@ -22,7 +22,7 @@ class Home : AppCompatActivity(){
     private lateinit var drawingViewModel: DrawingViewModel
     private var initialColor = Color.BLACK
     private var initialX = 500f
-    private var initialY = 500f
+    private var initialY = 1000f
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {

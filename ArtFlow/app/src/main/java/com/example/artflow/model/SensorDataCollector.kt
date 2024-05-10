@@ -1,4 +1,4 @@
-package com.example.artflow.utils
+package com.example.artflow.model
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent

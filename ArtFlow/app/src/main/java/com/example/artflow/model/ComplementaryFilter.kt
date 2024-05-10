@@ -1,7 +1,4 @@
-package com.example.artflow.utils
-
-import android.hardware.SensorManager
-import kotlin.math.*
+package com.example.artflow.model
 
 class ComplementaryFilter() {
     private val alpha = 0.8f
