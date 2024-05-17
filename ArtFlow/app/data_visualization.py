@@ -23,7 +23,7 @@ def get_data():
 
     for drawing_id, drawing_data in data_drawings.items():
         n_paths = 0
-        rating = drawing_data.get('rating', 0)
+        rating = drawing_data.get('rating', )
         n_paths = sum(1 for key in drawing_data.keys() if key.startswith('path'))
         image = drawing_data.get('Draw File','')
         csv_data_draw.append([drawing_id, n_paths, rating,image])
@@ -50,8 +50,6 @@ get_data()
 
 df_draw = pd.read_csv("draw_data.csv")
 df_paths = pd.read_csv("paths_data.csv")
-
-df = pd.merge(df_draw, df_paths, on='DrawingID')
 
 total_drawings = df_draw.shape[0]
 
@@ -125,7 +123,7 @@ app.layout = html.Div([
 def update_rating_graph(_):
     # Rating Distribution
     fig_rating = go.Figure(go.Pie(labels=[f'Rating {i}' for i in range(1, 6)],
-                                   values=df['Rating'].value_counts().sort_index(),
+                                   values=df_draw['Rating'].value_counts().sort_index(),
                                    hole=0.5,
                                    marker=dict(colors=['#007bff', '#6c757d', '#28a745', '#ffc107', '#dc3545']),
                                    hoverinfo="label+value+percent",
@@ -165,7 +163,7 @@ def update_path_distribution_graph(_):
 )
 def update_datapoints_graph(selected_drawing):
     selected_drawing_data = df_paths[df_paths['DrawingID'] == selected_drawing]
-    fig_datapoints = go.Figure(go.Bar(x=selected_drawing_data.index + 1,
+    fig_datapoints = go.Figure(go.Bar(x=selected_drawing_data['PathID'].str.slice(5),
                                       y=selected_drawing_data['NoDataPoints'],
                                       marker_color='#007bff'))
     fig_datapoints.update_layout(title=f'Drawing {selected_drawing} Data',
@@ -181,7 +179,7 @@ def update_datapoints_graph(selected_drawing):
     [Input('dropdown-drawings', 'value')]
 )
 def update_color_counts(selected_drawing):
-    selected_drawing_data = df[df['DrawingID'] == selected_drawing].copy()  
+    selected_drawing_data = df_paths[df_paths['DrawingID'] == selected_drawing].copy()  
     unique_colors = selected_drawing_data['Color'].nunique()
     return html.Div([
         html.H4('Number of colors:', style={'margin-bottom': '5px'}),
@@ -203,7 +201,7 @@ def update_strokeWisdth_distribution(selected_drawing):
                                               marker_color='#007bff'))
     fig_width_distribution.update_layout(title='Stroke Width Distribution',
                                              xaxis_title='Width',
-                                             yaxis_title='Number of Drawings',
+                                             yaxis_title='Number of Paths',
                                              margin=dict(l=20, r=20, t=50, b=20),
                                              plot_bgcolor='#f8f9fa',
                                              paper_bgcolor='#f8f9fa')
